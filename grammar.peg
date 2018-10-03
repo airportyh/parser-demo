@@ -1,0 +1,30 @@
+start = binary_term
+
+_ = [ ]*
+
+identifier = letters:[a-z]+ { return letters.join("") }
+
+argument_list
+    = first:expression _ "," _ rest:argument_list { return [first, ...rest] }
+    / expr:expression { return [expr] }
+    / "" { return [] }
+
+function_call = fn:identifier _ "(" _ args:argument_list _ ")" { return { type: 'function_call', fn, args }}
+
+expression = binary_term
+
+binary_term
+    = lhs:binary_factor _ op:[+-] _ rhs:binary_term { return { type: 'bin_op', lhs, op, rhs } }
+    / binary_factor
+
+binary_factor
+    = lhs:singular_term _ op:[*/] _ rhs:binary_factor { return { type: 'bin_op', lhs, op, rhs } }
+    / singular_term
+
+singular_term
+    = number
+    / function_call
+    / "(" _ term:binary_term _ ")" { return term }
+
+number = digits:[0-9]+
+    { return Number(digits.join("")) }
